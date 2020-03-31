@@ -48,7 +48,7 @@ class UniqTest {
     fun bigDataTest() {
         val file = File("some.txt")
         file.bufferedWriter().use {
-            for (j in 0..99999) {
+            for (j in 0..9999999) {
                 for (i in 0..99) {
                     it.write("TEST")
                 }

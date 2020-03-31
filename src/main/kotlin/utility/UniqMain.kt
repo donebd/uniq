@@ -7,63 +7,82 @@ class  Uniq(private val ignoreCase : Boolean, private val uniqueLinesOutput : Bo
             private val countLinesOutput: Boolean, private val ignoredSymbols : Int,
             private val outputFileName : String, private val inputFileName : String){
 
+    private var outputWithEdit = mutableListOf<String>()
+
+    private var outputText = mutableListOf<String>()
+
+    private val ignoreSet = mutableSetOf<String>()
+
+    private var countLines = mutableListOf<Int>()
+
+    private var counts = 1
+
     @Throws(IOException::class)
 
     fun start(){
-        var text = mutableListOf<String>()
-        if (inputFileName == ""){
-            println("Enter text (\"exit\", for output): ")
-            var c = readLine() ?:  ""
-            while (c != "exit"){
-                text.add(c)
-                c = readLine() ?: ""
+        val text : Iterator<String> = if (inputFileName == ""){
+            println("Enter text : ")
+            System.`in`.bufferedReader().lineSequence().iterator()
+        } else{
+            File(inputFileName).bufferedReader().lineSequence().iterator()
+        }
+        while (text.hasNext())
+            functional(text.next())
+
+        if (countLinesOutput){
+            if ( uniqueLinesOutput) {
+                outputText = outputText.map { it.replace(it, "'1'$it") }.toMutableList()
             }
+            else
+                for ((i,string) in outputText.withIndex())
+                        outputText[i] = "'${countLines[i]}'$string"
+
         }
-        else{
-            text = File(inputFileName).readLines().toMutableList()
-        }
-        write(functional(text))
+
+        write(outputText)
     }
 
-    private fun functional(data : List<String>) : List<String>{
-        var text = data
-        if (data.size <= 1) {
-            return data
-        }
-        val answer = mutableListOf<String>()
-        if (ignoreCase) text = text.map { it.toLowerCase() }
-        if (ignoredSymbols != 0) text = text.map { it.drop(ignoredSymbols) }
-        var count = if (countLinesOutput) 1 else -1
-        if (uniqueLinesOutput) {
-            for ((i,string) in text.withIndex()) {
-                if (text.indexOfFirst { it == string } == text.indexOfLast { it == string })
-                answer.add(data[i])
-            }
-            return answer
-        }
+    private fun functional(data : String) {
+        var current = data
+        if (ignoreCase) current = current.toLowerCase()
+        if (ignoredSymbols != 0) current = current.drop(ignoredSymbols)
 
-        text = text.reversed()
-        var lastString = text[0]
-        for ((i,string) in text.withIndex().drop(1)){
-            if (string != lastString){
-                if (count != -1){
-                    answer.add("'$count'${data[text.size - i]}")
-                    count = 1
-                }
-                else {
-                    answer.add(data[text.size - i])
-                }
+        if (uniqueLinesOutput){//uniq block
+            if (current !in outputWithEdit && current !in ignoreSet){
+                outputWithEdit.add(current)
+                outputText.add(data)
+            }
+            else if(current !in ignoreSet) {
+                ignoreSet.add(current)
+                outputText.removeAt(outputWithEdit.indexOf(current))
+                outputWithEdit.indexOf(current)
+            }
+        }else {//other block
+            if (outputWithEdit.isEmpty()) {
+                outputWithEdit.add(current)
+                outputText.add(data)
+                countLines.add(counts)
             }
             else{
-                if (count != -1) count++
+                if (current == outputWithEdit.last()) {
+                    if (countLinesOutput){
+                        counts ++
+                        countLines = countLines.dropLast(1).toMutableList()
+                        countLines.add(counts)
+                    }
+                } else {
+                    if (countLinesOutput) {
+                        counts = 1
+                        countLines.add(counts)
+                        outputText.add(data)
+                        outputWithEdit.add(current)
+                    } else {
+                        outputWithEdit.add(current)
+                        outputText.add(data)
+                    }
+                }
             }
-            lastString = string
         }
-        if (text[text.size - 1] != text[text.size - 2] || (text[text.size - 1] == text[text.size - 2] && text[text.size - 1] !in answer))
-            if (count != -1) answer.add("'${count}'${data[0]}")
-            else answer.add(data[0])
-
-        return answer.reversed()
     }
 
     private fun write(data : List<String>){
