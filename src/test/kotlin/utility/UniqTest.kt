@@ -15,16 +15,23 @@ class UniqTest {
             it.write("test")
             it.newLine()
             it.write("test")
+            it.newLine()
+            it.write("abc")
+            it.newLine()
+            it.write("test")
         }
 
         UniqLaunch().start(arrayOf("-o", "temp.txt", "some.txt"))
-        assertEquals("test", File("temp.txt").readText())
+        assertEquals(listOf("test","abc","test"), File("temp.txt").readLines())
 
         UniqLaunch().start(arrayOf("-o", "temp.txt", "some.txt", "-u"))
-        assertEquals("", File("temp.txt").readText())
+        assertEquals("abc", File("temp.txt").readText())
 
         UniqLaunch().start(arrayOf("-o", "temp.txt", "some.txt", "-c"))
-        assertEquals("'3'test", File("temp.txt").readText())
+        assertEquals(listOf("'3'test","'1'abc","'1'test"), File("temp.txt").readLines())
+
+        UniqLaunch().start(arrayOf("-o", "temp.txt", "some.txt", "-c", "-u"))
+        assertEquals("'1'abc", File("temp.txt").readText())
 
         file.bufferedWriter().use {
             it.write("teST")
@@ -45,7 +52,7 @@ class UniqTest {
     }
 
     @Test
-    fun bigDataTest() {
+    fun bigDataTest() {// WARNING 4 GB file
         val file = File("some.txt")
         file.bufferedWriter().use {
             for (j in 0..9999999) {

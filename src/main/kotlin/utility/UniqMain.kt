@@ -1,5 +1,6 @@
 package utility
 
+import java.io.BufferedWriter
 import java.io.File
 import java.io.IOException
 
@@ -29,15 +30,7 @@ class  Uniq(private val ignoreCase : Boolean, private val uniqueLinesOutput : Bo
         while (text.hasNext())
             functional(text.next())
 
-        if (countLinesOutput){
-            if ( uniqueLinesOutput) {
-                outputText = outputText.map { it.replace(it, "'1'$it") }.toMutableList()
-            }
-            else
-                for ((i,string) in outputText.withIndex())
-                        outputText[i] = "'${countLines[i]}'$string"
-
-        }
+        checkCountLinesOutput()
 
         write(outputText)
     }
@@ -85,21 +78,26 @@ class  Uniq(private val ignoreCase : Boolean, private val uniqueLinesOutput : Bo
         }
     }
 
-    private fun write(data : List<String>){
-        if (outputFileName == "") {
-            println("\nOutput : ")
-            for (string in data) println(string)
-        }
-        else{
-            val writer = File(outputFileName).bufferedWriter()
-            for ((i, string) in data.withIndex()) {
-                if (i != data.size-1)
-                    writer.appendln(string)
-                else
-                    writer.append(string)
+    private fun checkCountLinesOutput(){
+        if (countLinesOutput){
+            if ( uniqueLinesOutput) {
+                outputText = outputText.map { it.replace(it, "'1'$it") }.toMutableList()
             }
-            writer.close()
+            else
+                for ((i,string) in outputText.withIndex())
+                    outputText[i] = "'${countLines[i]}'$string"
+
         }
     }
 
+    private fun write(data : List<String>){
+        val writer : BufferedWriter = if (outputFileName == "") {
+            println("\nOutput:")
+            System.out.bufferedWriter()
+        }
+        else
+            File(outputFileName).bufferedWriter()
+        writer.write(data.joinToString("\n"))
+        writer.close()
+    }
 }
