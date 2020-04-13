@@ -47,7 +47,7 @@ class UniqTest {
         UniqLaunch().start(arrayOf("-o", "temp.txt", "some.txt", "-i", "-s", "1"))
         assertEquals("teST", File("temp.txt").readText())
 
-        File("some.txt").delete()
+        file.delete()
         File("temp.txt").delete()
     }
 
@@ -67,7 +67,7 @@ class UniqTest {
         UniqLaunch().start(arrayOf("-o", "temp.txt", "some.txt","-u"))
         assertEquals("success", File("temp.txt").readText())
 
-        File("some.txt").delete()
+        file.delete()
         File("temp.txt").delete()
     }
 }

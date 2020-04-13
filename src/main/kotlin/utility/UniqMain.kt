@@ -21,14 +21,19 @@ class  Uniq(private val ignoreCase : Boolean, private val uniqueLinesOutput : Bo
     @Throws(IOException::class)
 
     fun start(){
-        val text : Iterator<String> = if (inputFileName == ""){
+        val reader=  if (inputFileName == "")
+            System.`in`.bufferedReader()
+        else
+            File(inputFileName).bufferedReader()
+
+        if (inputFileName == "")
             println("Enter text : ")
-            System.`in`.bufferedReader().lineSequence().iterator()
-        } else{
-            File(inputFileName).bufferedReader().lineSequence().iterator()
-        }
+
+        val text = reader.lineSequence().iterator()
+
         while (text.hasNext())
             functional(text.next())
+        reader.close()
 
         checkCountLinesOutput()
 
@@ -97,7 +102,9 @@ class  Uniq(private val ignoreCase : Boolean, private val uniqueLinesOutput : Bo
         }
         else
             File(outputFileName).bufferedWriter()
-        writer.write(data.joinToString("\n"))
+        writer.use {
+            it.write(data.joinToString("\n"))
+        }
         writer.close()
     }
 }
